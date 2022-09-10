@@ -15,7 +15,7 @@ type CreateShortlinkResponse struct {
 }
 
 func CreateShortlink(c *gin.Context) {
-	x := c.MustGet(gin.AuthUserKey).(string)
-	fmt.Println(x)
+	x, exists := c.Get(gin.AuthUserKey)
+	fmt.Println(x, exists)
 	c.IndentedJSON(http.StatusOK, "hello")
 }
