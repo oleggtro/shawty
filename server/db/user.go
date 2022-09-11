@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"errors"
 	"github.com/alexedwards/argon2id"
 	"github.com/cloudybyte/shawty/server/util"
 	"time"
@@ -26,16 +27,20 @@ func CreateUser(state util.State, username string, password string) (result *Use
 	return &user, nil
 }
 
-func VerifyUser(state util.State, username string, password string) error {
-	var hash string
-	err := state.Db.QueryRow(context.Background(), "SELECT FROM users where username = $1 RETURNING password", username).Scan(&hash)
+// Verifys a users password.
+// Returns `NoMatch` on wrong password and `ErrNoRows` on user not found
+func VerifyUser(state util.State, username string, password string) (*User, error) {
+	var user User
+	err := state.Db.QueryRow(context.Background(), "SELECT * FROM users where username = $1", username).Scan(&user.Id, &user.Username, &user.Password_Hash, &user.Created_at)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	match, err := argon2id.ComparePasswordAndHash(password, hash)
-	if (match == true) && (err == nil) {
-		return nil
+	match, err := argon2id.ComparePasswordAndHash(password, user.Password_Hash)
+	if match == true {
+		return &user, nil
+	} else if (match == false) && (err == nil) {
+		return nil, errors.New("NoMatch")
 	} else {
-		return err
+		return nil, err
 	}
 }

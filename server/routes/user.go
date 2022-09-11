@@ -9,12 +9,12 @@ import (
 )
 
 type CreateUserRequest struct {
-	Username string `json:username binding:required`
-	Password string `json:password binding:required`
+	Username string `json:"username" binding:required`
+	Password string `json:"password" binding:required`
 }
 
 type CreateUserResponse struct {
-	Token string `json:token`
+	Token string `json:"token"`
 }
 
 func CreateUser(c *gin.Context) {

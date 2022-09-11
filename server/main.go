@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/cloudybyte/shawty/server/db"
 	"github.com/cloudybyte/shawty/server/routes"
 	"github.com/cloudybyte/shawty/server/util"
 	"github.com/gin-gonic/gin"
@@ -53,8 +54,11 @@ func main() {
 
 	r.POST("/signup", routes.CreateUser)
 
-	secured := r.Group("/", util.AuthMiddleware())
+	r.POST("/session", routes.CreateSession)
 
+	secured := r.Group("/sec", db.AuthMiddleware())
+
+	secured.GET("/hello", hello)
 	secured.GET("/login")
 
 	r.GET("/redirect", routes.CreateShortlink)
@@ -66,4 +70,8 @@ func CheckError(err error) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func hello(c *gin.Context) {
+	c.String(200, "hello")
 }

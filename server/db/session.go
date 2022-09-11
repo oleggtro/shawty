@@ -2,9 +2,13 @@ package db
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"time"
 
 	"github.com/cloudybyte/shawty/server/util"
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4"
 )
 
@@ -26,9 +30,9 @@ func CreateSession(state util.State, subject string) (*Session, error) {
 	return &sess, err
 }
 
-func CheckSession(state util.State, token string) (*Session, error) {
+func CheckAndRenewSession(state util.State, token uuid.UUID) (*Session, error) {
 	var sess Session
-	row := state.Db.QueryRow(context.Background(), "SELECT * FROM sessions WHERE token = $1", token)
+	row := state.Db.QueryRow(context.Background(), "UPDATE sessions SET expires_at = current_timestamp + (2 * interval '1 week') WHERE token = $1 AND expires_at > current_timestamp RETURNING *", token)
 	err := scanSession(&sess, row)
 	if err != nil {
 		return nil, err
@@ -36,6 +40,46 @@ func CheckSession(state util.State, token string) (*Session, error) {
 	return &sess, nil
 }
 
+func RemoveSession(state util.State, token string) error {
+	tag, err := state.Db.Exec(context.Background(), "DELETE FROM sessions WHERE token = $1", token)
+	if err != nil {
+		return err
+	} else {
+		if tag.RowsAffected() == 0 {
+			return errors.New("not found")
+		}
+	}
+	return nil
+}
+
+// ?
 func scanSession(sess *Session, row pgx.Row) error {
 	return row.Scan(&sess.Token, &sess.Subject, &sess.Created_at, &sess.Expires_at)
+}
+
+func AuthMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		x, _ := c.Get("state")
+		state := x.(util.State)
+		y := c.Request.Header.Get("Authentication")
+		token, err := uuid.Parse(y)
+		if err != nil {
+			c.AbortWithStatus(400)
+			return
+		}
+
+		_, err = CheckAndRenewSession(state, token)
+		if err != nil {
+			switch err.Error() {
+			case "no rows in result set":
+				c.AbortWithStatus(401)
+				return
+			default:
+				fmt.Println("encountered error while validating session: ", err)
+				c.AbortWithStatus(500)
+				return
+			}
+		}
+		c.Next()
+	}
 }
