@@ -25,3 +25,17 @@ func CreateUser(state util.State, username string, password string) (result *Use
 
 	return &user, nil
 }
+
+func VerifyUser(state util.State, username string, password string) error {
+	var hash string
+	err := state.Db.QueryRow(context.Background(), "SELECT FROM users where username = $1 RETURNING password", username).Scan(&hash)
+	if err != nil {
+		return err
+	}
+	match, err := argon2id.ComparePasswordAndHash(password, hash)
+	if (match == true) && (err == nil) {
+		return nil
+	} else {
+		return err
+	}
+}
