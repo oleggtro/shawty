@@ -61,7 +61,9 @@ func main() {
 	secured.GET("/hello", hello)
 	secured.GET("/login")
 
-	r.GET("/redirect", routes.CreateShortlink)
+	secured.POST("/red", routes.CreateShortlink)
+
+	r.GET("/redirect/:id", routes.UseShortlink)
 
 	r.Run("localhost:8080")
 }

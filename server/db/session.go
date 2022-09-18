@@ -32,9 +32,12 @@ func CreateSession(state util.State, subject string) (*Session, error) {
 
 func CheckAndRenewSession(state util.State, token uuid.UUID) (*Session, error) {
 	var sess Session
-	row := state.Db.QueryRow(context.Background(), "UPDATE sessions SET expires_at = current_timestamp + (2 * interval '1 week') WHERE token = $1 AND expires_at > current_timestamp RETURNING *", token)
+	row := state.Db.QueryRow(context.Background(), "UPDATE sessions SET expires_at = current_timestamp + (2 * interval '1 week') WHERE token = $1 AND expires_at > current_timestamp RETURNING *", token.String())
 	err := scanSession(&sess, row)
 	if err != nil {
+		fmt.Println(`error: `, err)
+		fmt.Println("token", token)
+		fmt.Println("token string", token.String())
 		return nil, err
 	}
 	return &sess, nil
@@ -61,14 +64,14 @@ func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		x, _ := c.Get("state")
 		state := x.(util.State)
-		y := c.Request.Header.Get("Authentication")
+		y := c.Request.Header.Get("Authorization")
 		token, err := uuid.Parse(y)
 		if err != nil {
 			c.AbortWithStatus(400)
 			return
 		}
 
-		_, err = CheckAndRenewSession(state, token)
+		session, err := CheckAndRenewSession(state, token)
 		if err != nil {
 			switch err.Error() {
 			case "no rows in result set":
@@ -79,6 +82,8 @@ func AuthMiddleware() gin.HandlerFunc {
 				c.AbortWithStatus(500)
 				return
 			}
+		} else {
+			c.Set("session", *session)
 		}
 		c.Next()
 	}
