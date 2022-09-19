@@ -8,7 +8,7 @@ import (
 
 	"github.com/cloudybyte/shawty/server/util"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
+	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4"
 )
 
@@ -19,7 +19,7 @@ type Session struct {
 	Expires_at time.Time
 }
 
-func CreateSession(state util.State, subject string) (*Session, error) {
+func CreateSession(state util.State, subject pgtype.UUID) (*Session, error) {
 	var sess Session
 	row := state.Db.QueryRow(context.Background(), "INSERT INTO sessions (subject) VALUES ($1) RETURNING *", subject)
 	//is there a better way to do this?
@@ -30,14 +30,14 @@ func CreateSession(state util.State, subject string) (*Session, error) {
 	return &sess, err
 }
 
-func CheckAndRenewSession(state util.State, token uuid.UUID) (*Session, error) {
+func CheckAndRenewSession(state util.State, token pgtype.UUID) (*Session, error) {
 	var sess Session
-	row := state.Db.QueryRow(context.Background(), "UPDATE sessions SET expires_at = current_timestamp + (2 * interval '1 week') WHERE token = $1 AND expires_at > current_timestamp RETURNING *", token.String())
+	row := state.Db.QueryRow(context.Background(), "UPDATE sessions SET expires_at = current_timestamp + (2 * interval '1 week') WHERE token = $1 AND expires_at > current_timestamp RETURNING *", token)
 	err := scanSession(&sess, row)
 	if err != nil {
 		fmt.Println(`error: `, err)
 		fmt.Println("token", token)
-		fmt.Println("token string", token.String())
+		fmt.Println("token string", token)
 		return nil, err
 	}
 	return &sess, nil
@@ -65,7 +65,8 @@ func AuthMiddleware() gin.HandlerFunc {
 		x, _ := c.Get("state")
 		state := x.(util.State)
 		y := c.Request.Header.Get("Authorization")
-		token, err := uuid.Parse(y)
+		var token pgtype.UUID
+		err := token.Set(y)
 		if err != nil {
 			c.AbortWithStatus(400)
 			return

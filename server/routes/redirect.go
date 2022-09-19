@@ -7,7 +7,7 @@ import (
 	"github.com/cloudybyte/shawty/server/db"
 	"github.com/cloudybyte/shawty/server/util"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
+	"github.com/jackc/pgtype"
 )
 
 type CreateShortlinkRequest struct {
@@ -38,7 +38,13 @@ func CreateShortlink(c *gin.Context) {
 	}
 
 	// `session.Subject` string can never be a non-uuid
-	short, err := db.CreateRedirect(state, uuid.MustParse(session.Subject), req.Url)
+	var subj pgtype.UUID
+	err := subj.Set(session.Subject)
+	if err != nil {
+		c.AbortWithStatus(400)
+		return
+	}
+	short, err := db.CreateRedirect(state, subj, req.Url)
 	if err != nil {
 		c.AbortWithStatus(500)
 		return

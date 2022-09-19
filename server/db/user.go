@@ -3,13 +3,15 @@ package db
 import (
 	"context"
 	"errors"
+	"time"
+
 	"github.com/alexedwards/argon2id"
 	"github.com/cloudybyte/shawty/server/util"
-	"time"
+	"github.com/jackc/pgtype"
 )
 
 type User struct {
-	Id            string
+	Id            pgtype.UUID
 	Username      string
 	Password_Hash string
 	Created_at    time.Time
@@ -21,9 +23,11 @@ func CreateUser(state util.State, username string, password string) (result *Use
 		return nil, err
 	}
 	user := User{}
-	res := state.Db.QueryRow(context.Background(), "INSERT INTO users (username, password) VALUES ($1, $2)", username, hash)
-	res.Scan(user.Id, user.Username, user.Password_Hash, user.Created_at)
-
+	res := state.Db.QueryRow(context.Background(), "INSERT INTO users (username, password) VALUES ($1, $2) RETURNING *", username, hash)
+	error := res.Scan(&user.Id, &user.Username, &user.Password_Hash, &user.Created_at)
+	if error != nil {
+		return nil, error
+	}
 	return &user, nil
 }
 

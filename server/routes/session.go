@@ -19,14 +19,11 @@ type CreateSessionResponse struct {
 }
 
 func CreateSession(c *gin.Context) {
-	fmt.Println("1")
 	x, _ := c.Get("state")
 	state := x.(util.State)
 
-	fmt.Println("2")
 	req := CreateSessionRequest{}
 	c.BindJSON(&req)
-	fmt.Println("3")
 	user, err := db.VerifyUser(state, req.Username, req.Password)
 	if err != nil {
 		switch err.Error() {
@@ -45,7 +42,7 @@ func CreateSession(c *gin.Context) {
 	sess, err := db.CreateSession(state, user.Id)
 	if err != nil {
 		c.AbortWithStatus(500)
-		log.Error("Err: `%v` while creating session", err)
+		log.Error("While creating session: ", err)
 		return
 	}
 

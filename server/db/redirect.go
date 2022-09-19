@@ -6,19 +6,19 @@ import (
 	"time"
 
 	"github.com/cloudybyte/shawty/server/util"
-	"github.com/google/uuid"
+	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4"
 )
 
 type Redirect struct {
 	Id         string
 	RedirectTo string
-	Owner      uuid.UUID
+	Owner      pgtype.UUID
 	CreatedAt  time.Time
 	Uses       int
 }
 
-func CreateRedirect(state util.State, owner uuid.UUID, target string) (*Redirect, error) {
+func CreateRedirect(state util.State, owner pgtype.UUID, target string) (*Redirect, error) {
 	var res Redirect
 	id := genId()
 	row := state.Db.QueryRow(context.Background(), "INSERT INTO redirects (id, owner, redirect_to) VALUES ($1, $2, $3) RETURNING *", id, owner, target)

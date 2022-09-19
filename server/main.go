@@ -22,6 +22,7 @@ const (
 )
 
 func main() {
+	//TODO: make db url configurable
 	conn, err := pgx.Connect(context.Background(), DB_URL)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
