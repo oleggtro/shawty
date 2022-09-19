@@ -60,7 +60,6 @@ func main() {
 	secured := r.Group("/sec", db.AuthMiddleware())
 
 	secured.GET("/hello", hello)
-	secured.GET("/login")
 
 	secured.POST("/red", routes.CreateShortlink)
 
