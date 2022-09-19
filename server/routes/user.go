@@ -2,7 +2,6 @@ package routes
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/cloudybyte/shawty/server/db"
 	"github.com/cloudybyte/shawty/server/util"
@@ -35,7 +34,7 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 
-	time.Sleep(750 * time.Millisecond)
+	// time.Sleep(750 * time.Millisecond)
 
 	session, err := db.CreateSession(state, user.Id)
 	if err != nil {

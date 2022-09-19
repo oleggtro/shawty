@@ -50,9 +50,10 @@ func RemoveSession(state util.State, token string) error {
 	} else {
 		if tag.RowsAffected() == 0 {
 			return errors.New("not found")
+			// }
 		}
+		return nil
 	}
-	return nil
 }
 
 // ?
