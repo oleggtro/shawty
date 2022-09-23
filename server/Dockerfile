@@ -19,7 +19,10 @@ WORKDIR /app
 COPY --from=build /build/bin .
 COPY --from=build /build/server/migrations/ /app/migrations
 
+
 RUN apk add ca-certificates
+
+LABEL org.opencontainers.image.source=https://github.com/cloudybyte/shawty
 
 EXPOSE 8080
 ENTRYPOINT ["/app/shawty-server"]
