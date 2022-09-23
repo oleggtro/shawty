@@ -1,0 +1,34 @@
+version: "3"
+services:
+  shawty:
+    image: ghcr.io/cloudybyte/shawty:latest
+    restart: unless-stopped
+    ports:
+      - 8080:8080
+    environment:
+      SH_DB_PASSWORD: SecurePasswordHere
+      SH_DB_NAME: shawty
+      SH_DB_HOST: postgres
+      SH_DB_USERNAME: postgres
+      SH_DB_PORT: '5432'
+    depends_on:
+      - postgres
+    networks:
+      - internal
+      - your_proxy
+  
+  postgres:
+    image: postgres:14
+    environment:
+      POSTGRES_DB: shawty
+      POSTGRES_PASSWORD: SecurePasswordHere
+    networks:
+      - internal
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+
+networks:
+  internal:
+    internal: true
+#  your_proxy:
+#    external: true
