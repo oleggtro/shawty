@@ -17,6 +17,7 @@ FROM alpine:3 AS run
 WORKDIR /app
 
 COPY --from=build /build/bin .
+COPY --from=build /build/server/migrations/ /app/migrations
 
 RUN apk add ca-certificates
 
