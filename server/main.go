@@ -14,16 +14,24 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jackc/pgx/v4"
+	"github.com/joho/godotenv"
 )
 
-const (
-	API_VERSION = "v1"
-	DB_URL      = "postgres://postgres:1234@localhost:5432/shawty_dev?sslmode=disable"
-)
+type Config struct {
+	DBName     string `mapstructure:"DB_USER"`
+	DBUsername string `mapstructure:"DB_USERNAME"`
+	DBPassword string `mapstructure:"DB_PASSWORD"`
+	DBHost     string `mapstructure:"DB_HOST"`
+	DBPort     string `mapstrucure:"DB_PORT"`
+}
 
 func main() {
-	//TODO: make db url configurable
-	conn, err := pgx.Connect(context.Background(), DB_URL)
+	godotenv.Load()
+
+	util.LoadConfig()
+
+	db_url := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", util.Current.DB.Username, util.Current.DB.Password, util.Current.DB.Host, util.Current.DB.Port, util.Current.DB.Name)
+	conn, err := pgx.Connect(context.Background(), db_url)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
 		os.Exit(1)
@@ -32,7 +40,7 @@ func main() {
 
 	m, err := migrate.New(
 		"file://migrations",
-		DB_URL,
+		db_url,
 	)
 	if err != nil {
 		log.Fatal(err)
