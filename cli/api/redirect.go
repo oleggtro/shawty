@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 
@@ -11,11 +12,11 @@ import (
 )
 
 type createRedirectRequest struct {
-	url string `json:"url"`
+	Url string `json:"Url"`
 }
 
 type createRedirectResponse struct {
-	Short string `json:"Short"`
+	Short string `json:"shortlink" binding:"required"`
 }
 
 type Redirect struct {
@@ -43,11 +44,25 @@ func (c *Client) CreateRedirect(target string) (*Redirect, error) {
 		panic(err)
 	}
 
+	if resp.StatusCode == 500 {
+		fmt.Printf("Status: %s\nThis means sth is wrong on the servers end. You are most likely not at fault here and cannot fix the error.\nPlease contact your admin.\n", resp.Status)
+	}
+
 	defer resp.Body.Close()
 
 	var short Redirect
 
-	err = json.NewDecoder(resp.Body).Decode(&short)
+	// fmt.Printf("resp: %q", resp.Body)
+
+	body, err2 := ioutil.ReadAll(resp.Body)
+	if err2 != nil {
+		panic(err2)
+	}
+
+	err3 := json.Unmarshal(body, &short)
+	if err3 != nil {
+		panic(err3)
+	}
 	fmt.Println("target: ", target)
 	fmt.Printf("short: %v\n", short)
 	return &short, err

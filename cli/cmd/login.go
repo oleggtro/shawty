@@ -14,13 +14,7 @@ import (
 // loginCmd represents the login command
 var loginCmd = &cobra.Command{
 	Use:   "login",
-	Short: "Creates a new session token with the given credentials",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Pretty much does what it says",
 	Run: func(cmd *cobra.Command, args []string) {
 		c := api.NewClient(&http.Client{})
 		if len(args) < 2 {
@@ -36,6 +30,7 @@ to quickly create a Cobra application.`,
 			cmd.PrintErr("Couldn't create session: ", err)
 		}
 		viper.GetViper().Set("token", sess.Token)
+		//TODO: we probably shouldn't write the session token in plaintext to disk. Maybe use the keyring here?
 		if err := viper.WriteConfig(); err != nil {
 			cmd.PrintErr("Couldn't write config: ", err)
 		}
