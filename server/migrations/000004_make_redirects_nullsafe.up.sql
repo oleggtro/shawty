@@ -1,0 +1,2 @@
+ALTER TABLE redirects
+ALTER COLUMN redirect_to SET NOT NULL
