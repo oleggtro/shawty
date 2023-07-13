@@ -12,7 +12,7 @@ import (
 )
 
 type createRedirectRequest struct {
-	Url string `json:"Url"`
+	Url string `json:"url"`
 }
 
 type createRedirectResponse struct {
@@ -44,8 +44,12 @@ func (c *Client) CreateRedirect(target string) (*Redirect, error) {
 		panic(err)
 	}
 
+	if resp.StatusCode == 401 {
+		return nil, fmt.Errorf("unauthorized")
+	}
+
 	if resp.StatusCode == 500 {
-		fmt.Printf("Status: %s\nThis means sth is wrong on the servers end. You are most likely not at fault here and cannot fix the error.\nPlease contact your admin.\n", resp.Status)
+		return nil, fmt.Errorf("internal_server_error")
 	}
 
 	defer resp.Body.Close()

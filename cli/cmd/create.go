@@ -4,6 +4,7 @@ Copyright © 2022 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/cloudybyte/shawty/cli/api"
@@ -31,7 +32,18 @@ to quickly create a Cobra application.`,
 		}
 		red, err := c.CreateRedirect(args[0])
 		if err != nil {
-			panic(err)
+			switch err.Error() {
+			case "unauthorized":
+				fmt.Printf("Status: %s\nUnauthorized. Please try logging back in.\n", "401")
+				return
+			case "internal_server_error":
+				fmt.Printf("Status: %s\nThis means sth is wrong on the servers end. You are most likely not at fault here and cannot fix the error.\nPlease contact your admin.\n", "500")
+				return
+			default:
+				fmt.Println("An error occured. Please check the stacktrace and contact the developer.")
+
+				panic(err)
+			}
 		}
 		cmd.Printf("Successfully shortened %s to %s\n", args[0], red.Target)
 	},
