@@ -45,7 +45,7 @@ to quickly create a Cobra application.`,
 				panic(err)
 			}
 		}
-		cmd.Printf("Successfully shortened %s to %s\n", args[0], red.Target)
+		cmd.Printf("Successfully shortened %s to %s\n", args[0], red.Short)
 	},
 }
 

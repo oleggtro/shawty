@@ -23,7 +23,7 @@ type Redirect struct {
 	Target string
 }
 
-func (c *Client) CreateRedirect(target string) (*Redirect, error) {
+func (c *Client) CreateRedirect(target string) (*createRedirectResponse, error) {
 	rel := &url.URL{Path: "/sec/redirect"}
 	u := c.BaseURL.ResolveReference(rel)
 
@@ -54,7 +54,7 @@ func (c *Client) CreateRedirect(target string) (*Redirect, error) {
 
 	defer resp.Body.Close()
 
-	var short Redirect
+	var short createRedirectResponse
 
 	// fmt.Printf("resp: %q", resp.Body)
 

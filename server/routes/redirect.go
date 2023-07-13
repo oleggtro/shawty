@@ -15,7 +15,7 @@ type CreateShortlinkRequest struct {
 }
 
 type CreateShortlinkResponse struct {
-	Short string `json:shortlink`
+	Short string `json:"shortlink"`
 }
 
 func CreateShortlink(c *gin.Context) {
