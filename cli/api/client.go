@@ -3,6 +3,8 @@ package api
 import (
 	"net/http"
 	"net/url"
+
+	"github.com/spf13/viper"
 )
 
 type Client struct {
@@ -19,7 +21,7 @@ func NewClient(httpClient *http.Client) *Client {
 
 	c := &Client{httpClient: httpClient}
 	c.UserAgent = "shawty-cli-v1.alpha"
-	c.BaseURL, _ = url.Parse("http://localhost:8080")
+	c.BaseURL, _ = url.Parse(viper.GetString("base_url"))
 
 	return c
 }
