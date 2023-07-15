@@ -21,7 +21,8 @@ type Session struct {
 
 func CreateSession(state util.State, subject pgtype.UUID) (*Session, error) {
 	var sess Session
-	row := state.Db.QueryRow(context.Background(), "INSERT INTO sessions (subject) VALUES ($1) RETURNING *", subject)
+	// return the currently valid session. If there is none, create new one
+	row := state.Db.QueryRow(context.Background(), "WITH ins AS (INSERT INTO sessions (subject) VALUES ('01ff0132-c5b4-45f9-b639-349480df6f81') ON CONFLICT (subject) DO NOTHING RETURNING * ) SELECT * FROM ins UNION SELECT * FROM sessions WHERE subject = '01ff0132-c5b4-45f9-b639-349480df6f81';", subject)
 	//is there a better way to do this?
 	err := scanSession(&sess, row)
 	if err != nil {
